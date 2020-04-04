@@ -1,0 +1,15 @@
+{
+  "imports": {
+    "cannon-es": "./cannon-es.js",
+    "es-module-shims": "./es-module-shims.js",
+    "socket.io-client": "./socket.io-client.js",
+    "three": "./three.js",
+    "three-projected-material": "./three-projected-material.js",
+    "three/examples/jsm/controls/OrbitControls.js": "./three/examples/jsm/controls/OrbitControls.js",
+    "three/examples/jsm/effects/AsciiEffect.js": "./three/examples/jsm/effects/AsciiEffect.js",
+    "three/examples/jsm/exporters/STLExporter.js": "./three/examples/jsm/exporters/STLExporter.js",
+    "three/examples/jsm/loaders/GLTFLoader.js": "./three/examples/jsm/loaders/GLTFLoader.js",
+    "three/examples/jsm/loaders/STLLoader.js": "./three/examples/jsm/loaders/STLLoader.js",
+    "three/examples/jsm/objects/Fire.js": "./three/examples/jsm/objects/Fire.js"
+  }
+}

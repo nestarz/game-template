@@ -1,0 +1,27 @@
+{
+  "devDependencies": {
+    "snowpack": "^1.6.0"
+  },
+  "dependencies": {
+    "cannon-es": "^0.8.7",
+    "es-module-shims": "^0.4.6",
+    "socket.io-client": "^2.3.0",
+    "three": "^0.115.0",
+    "three-projected-material": "^1.1.0"
+  },
+  "snowpack": {
+    "webDependencies": [
+      "es-module-shims",
+      "socket.io-client",
+      "three",
+      "three/examples/jsm/controls/OrbitControls.js",
+      "three/examples/jsm/loaders/GLTFLoader.js",
+      "three/examples/jsm/loaders/STLLoader.js",
+      "three/examples/jsm/effects/AsciiEffect.js",
+      "three/examples/jsm/exporters/STLExporter.js",
+      "three/examples/jsm/objects/Fire.js",
+      "cannon-es",
+      "three-projected-material"
+    ]
+  }
+}

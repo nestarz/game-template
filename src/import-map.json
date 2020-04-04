@@ -1,0 +1,6 @@
+{
+    "imports": {
+      "three-to-cannon": "./scene/three-to-cannon.js",
+      "utils/": "./utils/"
+    }
+  }
