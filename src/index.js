@@ -4,15 +4,18 @@ import Chat from "./chat/chat.js";
 const $ = (selector) => document.body.querySelector(selector);
 
 async function main() {
+  const overlay = $("#app").appendChild(document.createElement("aside"));
+  const main = $("#app").appendChild(document.createElement("main"));
+
   const loading = await Loading();
-  loading.attach($("#app"));
+  loading.attach(main);
 
   const game = await (await import("./game/index.js")).default();
   const chat = Chat(`hsl(${Math.random() * 360}, 100%, 80%)`);
   await loading.start();
 
-  chat.attach($("#chat"));
-  game.attach($("#app"), document.body);
+  chat.attach(overlay);
+  game.attach(main, document.body);
   game.start();
 
   loading.remove();
@@ -21,9 +24,15 @@ async function main() {
 document.body.requestFullscreen =
   document.body.requestFullscreen || document.body.webkitRequestFullScreen;
 
-$("#app").addEventListener("click", function start() {
-  $("#start").remove();
+const start = Object.assign(
+  $("#app").appendChild(document.createElement("span")),
+  { innerText: "Lancer" }
+);
+start.style.cursor = "pointer";
+
+$("#app").addEventListener("click", function go() {
+  start.remove();
   if (location.hostname !== "localhost") document.body.requestFullscreen();
   main();
-  $("#app").removeEventListener("click", start);
+  $("#app").removeEventListener("click", go);
 });
