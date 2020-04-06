@@ -72,15 +72,16 @@ export const Player = async (world, controls) => {
           grounded = false;
         }
 
-        const rotation = new THREE.Euler().setFromQuaternion(
-          new THREE.Quaternion().copy(body.quaternion)
-        );
-        console.log(rotation);
         if (controls) {
           controls.target = body.position.vadd(offset);
-          if (input.phi || input.length()) {
-            controls.setPhi(rotation.y);
-          }
+
+          // if (input.phi || input.length()) {
+          //   const rotation = new THREE.Euler().setFromQuaternion(
+          //     new THREE.Quaternion().copy(body.quaternion)
+          //   );
+          //   console.log(rotation);
+          //   controls.setPhi(rotation.y);
+          // }
         }
 
         mesh.position.copy(body.position);

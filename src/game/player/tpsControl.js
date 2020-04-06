@@ -1,53 +1,38 @@
 import * as THREE from "three";
 
-const OrbitState = (options = {}) => {
-  let phi = 0;
-  let theta = 0;
-  let radius = options.radius || 60;
-  let min = options.min || 50;
-  let max = options.max || 80;
+const computeMousePosUnit = ({ clientX, clientY, currentTarget }) =>
+  new THREE.Vector2(
+    clientX / currentTarget.offsetHeight,
+    clientY / currentTarget.offsetWidth
+  );
 
+const Orbit = (radius = 1, phi = 0, theta = 0, min = 0, max = +Infinity) => {
+  const makeSafe = (_phi) => {
+    const EPS = 0.000001;
+    return Math.max(EPS, Math.min(Math.PI - EPS, _phi));
+  };
   return {
-    moveEuler: (thetaDelta, phiDelta) => {
-      theta += thetaDelta;
-      phi += phiDelta;
-    },
-    setPhi: (newPhi) => {
-      phi = newPhi % (Math.PI);
-    },
-    move: (delta) => {
-      theta = (theta + delta.x * 0.1 * Math.PI) % (2 * Math.PI);
-      phi = (phi - delta.y * 0.1 * Math.PI) % Math.PI;
-    },
     zoom: (zoom) => {
       radius = Math.min(Math.max(radius + zoom, min), max);
     },
-    toXYZ: () => {
-      // https://en.wikipedia.org/wiki/Spherical_coordinate_system#Cartesian_coordinates
-      const pos = new THREE.Vector3(
-        // Math.sin(theta) * Math.cos(phi), //Math.cos(phi) * Math.cos(theta + Math.PI / 2),
-        // Math.sin(theta) * Math.sin(phi), //Math.sin(phi),
-        // Math.cos(phi) //Math.cos(phi) * Math.sin(theta + Math.PI / 2)
-        -Math.cos(phi) * Math.sin(theta + Math.PI / 2),
-        Math.cos(phi) * Math.cos(theta + Math.PI / 2),
-        Math.sin(phi),
-      ).multiplyScalar(radius);
-      console.log(pos);
-      return pos;
+    rotate: (delta) => {
+      theta = (theta - delta.x * Math.PI) % (2 * Math.PI);
+      phi = makeSafe((phi - delta.y * Math.PI) % (2 * Math.PI));
+    },
+    toCartesianCoordinates: () => {
+      const sinPhiRadius = Math.sin(phi) * radius;
+
+      return new THREE.Vector3().set(
+        sinPhiRadius * Math.sin(theta),
+        Math.cos(phi) * radius,
+        sinPhiRadius * Math.cos(theta)
+      );
     },
   };
 };
 
-const computeMousePosUnit = ({ clientX, clientY, currentTarget }) =>
-  new THREE.Vector2(
-    clientX / currentTarget.offsetWidth,
-    clientY / currentTarget.offsetHeight
-  );
-
 export const TPSControl = (camera) => {
-  const mouseAcceleration = new THREE.Vector2(1, 1);
-  const offset = new THREE.Vector3(0, 0, 0);
-  const orbit = OrbitState();
+  const orbit = Orbit(100, 1, 1, 20, 150);
 
   let target = new THREE.Vector3(0, 0, 0);
   let prevMousePosUnit = new THREE.Vector2(0, 0);
@@ -56,16 +41,14 @@ export const TPSControl = (camera) => {
     set target(newTarget) {
       target.copy(newTarget);
     },
-    rotateEuler: orbit.moveEuler,
-    setPhi: (...args) => orbit.setPhi(...args),
     manager: {
       keyEvents: {
         mousemove: (event) => {
           if (!isMousedown) return;
 
           const delta = computeMousePosUnit(event).sub(prevMousePosUnit);
-          const scaled = delta.clone().multiply(mouseAcceleration);
-          orbit.move(scaled);
+          orbit.rotate(delta);
+          prevMousePosUnit.copy(computeMousePosUnit(event));
         },
         mousedown: (event) => {
           isMousedown = true;
@@ -74,11 +57,10 @@ export const TPSControl = (camera) => {
         mouseup: () => {
           isMousedown = false;
         },
-        wheel: (event) => orbit.zoom(event.deltaY),
+        wheel: (event) => orbit.zoom(event.deltaY * 0.01),
       },
       update: () => {
-        console.log(orbit.toXYZ());
-        const position = target.clone().add(offset).add(orbit.toXYZ());
+        const position = target.clone().add(orbit.toCartesianCoordinates());
         camera.position.copy(position);
         camera.lookAt(target);
       },
