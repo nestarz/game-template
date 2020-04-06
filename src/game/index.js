@@ -1,15 +1,18 @@
 import Physics from "./physics/physics.js";
 import Setup from "./environnement/scene.js";
 import { Player } from "./player/players.js";
+// import { TPSControl } from "./player/tpsControl.js";
+import { Orbit } from "./player/testControl.js";
 
 export default async () => {
   const FPS = 25;
 
-  const setup = await Setup();
+  const setup = await Setup({ withControls: false });
   const physics = await Physics(setup.scene, 1 / FPS, { debug: true });
-  const player = await Player(physics.world, setup.camera, setup.controls);
+  const control = await Orbit(setup.camera);
+  const player = await Player(physics.world, setup.camera, control); //setup.controls);
 
-  const entities = { setup, player, physics };
+  const entities = { setup, control, player, physics };
   const manager = (fn) =>
     Object.values(entities)
       .flatMap((e) => fn(e.manager))
@@ -18,17 +21,17 @@ export default async () => {
   return {
     attach: async (element, listener = element) => {
       element.appendChild(setup.renderer.domElement);
-      
+
       const resize = () => manager((m) => m.resize && m.resize());
       if (window.ResizeObserver)
-      new window.ResizeObserver(resize).observe(element);
+        new window.ResizeObserver(resize).observe(element);
       else window.addEventListener("resize", resize);
-      
+
       const keyEvents = (ev) =>
-        manager((m) => {
-          if (m.keyEvents && m.keyEvents[ev.type]) m.keyEvents[ev.type](ev);
+        manager(({ keyEvents }) => {
+          if (keyEvents && keyEvents[ev.type]) keyEvents[ev.type](ev);
         });
-      ["keydown", "keyup", "click"].forEach((event) =>
+      manager((m) => m.keyEvents && Object.keys(m.keyEvents)).forEach((event) =>
         listener.addEventListener(event, keyEvents, true)
       );
     },

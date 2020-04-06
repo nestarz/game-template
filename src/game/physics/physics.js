@@ -32,6 +32,7 @@ export default (scene, timestep, { debug = false }) => {
   const body = new CANNON.Body({ mass: 0, shape });
   body.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
   body.position.y -= 1;
+  body.name = "Floor0"
   world.add(body);
 
   const cannonDebugRenderer = debug
