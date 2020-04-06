@@ -48,6 +48,9 @@ export const Orbit = (
     set target(newTarget) {
       target.copy(newTarget);
     },
+    rotateLeft: () => {
+
+    },
     manager: {
       keyEvents: {
         mousemove: ({ clientX: x, clientY: y }) => {

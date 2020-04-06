@@ -31,7 +31,7 @@ export default (options = { withControls: true }) => {
   const controls = options.withControls
     ? setupControls(camera, renderer)
     : null;
-    
+
   let currentObjects = [];
   return {
     scene,
@@ -46,6 +46,7 @@ export default (options = { withControls: true }) => {
       currentObjects = objects;
     },
     manager: {
+      objects: [new THREE.AxesHelper(50)],
       update: () => {},
       resize: () => resize(camera, renderer),
       start: () => {

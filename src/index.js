@@ -12,7 +12,7 @@ async function main() {
 
   const game = await (await import("./game/index.js")).default();
   const chat = Chat(`hsl(${Math.random() * 360}, 100%, 80%)`);
-  await loading.start();
+  // await loading.start();
 
   chat.attach(overlay);
   game.attach(main, document.body);
@@ -30,9 +30,14 @@ const start = Object.assign(
 );
 start.style.cursor = "pointer";
 
-$("#app").addEventListener("click", function go() {
+if (location.hostname !== "localhost") {
+  $("#app").addEventListener("click", function go() {
+    start.remove();
+    if (location.hostname !== "localhost") document.body.requestFullscreen();
+    main();
+    $("#app").removeEventListener("click", go);
+  });
+} else {
   start.remove();
-  if (location.hostname !== "localhost") document.body.requestFullscreen();
   main();
-  $("#app").removeEventListener("click", go);
-});
+}

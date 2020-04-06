@@ -1,16 +1,17 @@
 import Physics from "./physics/physics.js";
 import Setup from "./environnement/scene.js";
 import { Player } from "./player/players.js";
-// import { TPSControl } from "./player/tpsControl.js";
-import { Orbit } from "./player/testControl.js";
+import { TPSControl } from "./player/tpsControl.js";
+// import { Orbit } from "./player/testControl.js";
 
 export default async () => {
   const FPS = 25;
 
   const setup = await Setup({ withControls: false });
   const physics = await Physics(setup.scene, 1 / FPS, { debug: true });
-  const control = await Orbit(setup.camera);
-  const player = await Player(physics.world, setup.camera, control); //setup.controls);
+  // const control = await new Orbit(setup.camera);
+  const control = await TPSControl(setup.camera);
+  const player = await Player(physics.world, control); //setup.controls);
 
   const entities = { setup, control, player, physics };
   const manager = (fn) =>
@@ -39,6 +40,7 @@ export default async () => {
       let i = 0;
       manager((m) => m.start && m.start());
       setTimeout(function update() {
+        console.clear();
         manager((m) => m.update(i));
         setup.updateObjects(manager((m) => m.objects));
         i++;

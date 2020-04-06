@@ -6,15 +6,22 @@ import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import { getPhysicBody } from "../physics/physics.js";
 import MoveControls from "./controls.js";
 
-export const Player = async (world, camera, controls) => {
+export const Player = async (world, controls) => {
+  const offset = new THREE.Vector3(0, 10, 0);
   const speed = new CANNON.Vec3(50, 10, 50);
-  const moveControls = MoveControls();
+  const moveControls = MoveControls({
+    moveforward: true,
+    movebackward: true,
+    rotateleft: true,
+    rotateright: true,
+    jump: true,
+  });
 
   const path = "assets/models/girl/girl.stl";
   const geometry = await new Promise((r) => new STLLoader().load(path, r));
   const material = new THREE.MeshBasicMaterial();
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(-50, 22, -100);
+  mesh.position.set(0, 5, 0);
   mesh.scale.set(22, 22, 22);
 
   const body = getPhysicBody(mesh, { fixedRotation: true, mass: 10 });
@@ -44,27 +51,40 @@ export const Player = async (world, camera, controls) => {
       },
       update: () => {
         const input = moveControls
-          .fromCoordinates(camera)
+          // .fromTransformMatrix(camera.position, camera.quaternion)
+          .fromTransformMatrix(body.position, body.quaternion)
           .multiply(speed)
           .multiplyScalar(grounded ? 1 : 0.5);
 
+        console.log(input.x, input.z);
+        console.log(moveControls.direction.x, moveControls.direction.z);
         body.velocity.set(input.x, body.velocity.y, input.z);
+
+        const rotationQuaternion = new CANNON.Quaternion();
+        rotationQuaternion.setFromAxisAngle(
+          new CANNON.Vec3(0, 1, 0),
+          -input.phi * 0.1
+        );
+        body.quaternion = body.quaternion.mult(rotationQuaternion);
 
         if (grounded && input.y) {
           body.velocity.y = 10;
           grounded = false;
         }
 
+        const rotation = new THREE.Euler().setFromQuaternion(
+          new THREE.Quaternion().copy(body.quaternion)
+        );
+        console.log(rotation);
+        if (controls) {
+          controls.target = body.position.vadd(offset);
+          if (input.phi || input.length()) {
+            controls.setPhi(rotation.y);
+          }
+        }
+
         mesh.position.copy(body.position);
         mesh.quaternion.copy(body.quaternion);
-
-        const lookAt = new THREE.Vector3(0, 10, 0).add(body.position.clone());
-        camera.lookAt(lookAt);
-
-        if (controls) {
-          controls.target = lookAt;
-          controls.update && controls.update();
-        }
       },
     },
   };
