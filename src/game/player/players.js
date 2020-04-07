@@ -9,6 +9,7 @@ import InputControls from "./input.js";
 export const Player = async (world, controls) => {
   const offset = new THREE.Vector3(0, 10, 0);
   const speed = new CANNON.Vec3(50, 10, 50);
+  
   const inputControls = InputControls();
 
   const path = "assets/models/girl/girl.stl";

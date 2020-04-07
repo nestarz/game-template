@@ -194,6 +194,7 @@ class CannonDebugRenderer {
     }
 
     if (mesh) {
+      mesh.add(new THREE.AxesHelper(2));
       this.scene.add(mesh);
     }
 

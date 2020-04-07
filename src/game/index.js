@@ -1,17 +1,30 @@
+import * as THREE from "three";
+
 import Physics from "./physics/physics.js";
-import Setup from "./environnement/scene.js";
+import Scene from "./environnement/scene.js";
 import { Player } from "./player/players.js";
 import { TPSCameraControl } from "./player/tpsCameraControl.js";
 
-export default async () => {
-  const FPS = 25;
+const FPS = 24;
+const FOV = 90;
 
-  const setup = await Setup({ withControls: false });
-  const physics = await Physics(setup.scene, 1 / FPS, { debug: true });
-  const control = await TPSCameraControl(setup.camera);
+export default async () => {
+  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.01, 10000);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setPixelRatio(window.devicePixelRatio / 3);
+
+  // Functions that return an object with a 'manager' key 
+  // with update, keyEvents, start, resize methods
+  // and an objects list to add to the scene (can be updated)
+
+  const scene = await Scene(camera, renderer);
+  const physics = await Physics(scene.scene, 1 / FPS, { debug: true });
+  const control = await TPSCameraControl(camera);
   const player = await Player(physics.world, control);
 
-  const entities = { setup, control, player, physics };
+  const entities = { scene, physics, control, player };
+
+  // Helper to access manager values
   const manager = (fn) =>
     Object.values(entities)
       .flatMap((e) => fn(e.manager))
@@ -19,7 +32,7 @@ export default async () => {
 
   return {
     attach: async (element, listener = element) => {
-      element.appendChild(setup.renderer.domElement);
+      element.appendChild(renderer.domElement);
 
       const resize = () => manager((m) => m.resize && m.resize());
       if (window.ResizeObserver)
@@ -39,8 +52,8 @@ export default async () => {
       manager((m) => m.start && m.start());
       setTimeout(function update() {
         console.clear();
-        manager((m) => m.update(i));
-        setup.updateObjects(manager((m) => m.objects));
+        manager((m) => m.update && m.update(i));
+        scene.updateObjects(manager((m) => m.objects));
         i++;
         setTimeout(update, 1000 / FPS);
       }, 1000 / FPS);
