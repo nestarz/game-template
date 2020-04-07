@@ -7,11 +7,19 @@ const computeMousePosUnit = ({ clientX, clientY, currentTarget }) =>
   );
 
 const Orbit = (radius = 1, phi = 0, theta = 0, min = 0, max = +Infinity) => {
+  const result = new THREE.Vector3();
   const makeSafe = (_phi) => {
     const EPS = 0.000001;
     return Math.max(EPS, Math.min(Math.PI - EPS, _phi));
   };
   return {
+    set: (newPhi, newTheta) => {
+      theta = newTheta;
+      phi = makeSafe(newPhi);
+    },
+    setTheta: (newTheta) => {
+      theta = newTheta;
+    },
     zoom: (zoom) => {
       radius = Math.min(Math.max(radius + zoom, min), max);
     },
@@ -22,16 +30,16 @@ const Orbit = (radius = 1, phi = 0, theta = 0, min = 0, max = +Infinity) => {
     toCartesianCoordinates: () => {
       const sinPhiRadius = Math.sin(phi) * radius;
 
-      return new THREE.Vector3().set(
+      return result.set(
         sinPhiRadius * Math.sin(theta),
-        Math.cos(phi) * radius,
+        radius * Math.cos(phi),
         sinPhiRadius * Math.cos(theta)
       );
     },
   };
 };
 
-export const TPSControl = (camera) => {
+export const TPSCameraControl = (camera) => {
   const orbit = Orbit(100, 1, 1, 20, 150);
 
   let target = new THREE.Vector3(0, 0, 0);
@@ -41,14 +49,17 @@ export const TPSControl = (camera) => {
     set target(newTarget) {
       target.copy(newTarget);
     },
+    setAzimuth: (theta) => !isMousedown && orbit.setTheta(theta),
     manager: {
       keyEvents: {
         mousemove: (event) => {
           if (!isMousedown) return;
 
-          const delta = computeMousePosUnit(event).sub(prevMousePosUnit);
+          const mousePosUnit = computeMousePosUnit(event);
+          const delta = mousePosUnit.clone().sub(prevMousePosUnit);
           orbit.rotate(delta);
-          prevMousePosUnit.copy(computeMousePosUnit(event));
+
+          prevMousePosUnit.copy(mousePosUnit);
         },
         mousedown: (event) => {
           isMousedown = true;
@@ -60,7 +71,7 @@ export const TPSControl = (camera) => {
         wheel: (event) => orbit.zoom(event.deltaY * 0.01),
       },
       update: () => {
-        const position = target.clone().add(orbit.toCartesianCoordinates());
+        const position = orbit.toCartesianCoordinates().add(target);
         camera.position.copy(position);
         camera.lookAt(target);
       },

@@ -4,18 +4,12 @@ import * as CANNON from "cannon-es";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 
 import { getPhysicBody } from "../physics/physics.js";
-import MoveControls from "./controls.js";
+import InputControls from "./input.js";
 
 export const Player = async (world, controls) => {
   const offset = new THREE.Vector3(0, 10, 0);
   const speed = new CANNON.Vec3(50, 10, 50);
-  const moveControls = MoveControls({
-    moveforward: true,
-    movebackward: true,
-    rotateleft: true,
-    rotateright: true,
-    jump: true,
-  });
+  const inputControls = InputControls();
 
   const path = "assets/models/girl/girl.stl";
   const geometry = await new Promise((r) => new STLLoader().load(path, r));
@@ -44,46 +38,56 @@ export const Player = async (world, controls) => {
     manager: {
       objects: [mesh],
       keyEvents: {
-        keydown: (e) => moveControls.trigger(e.code),
-        keyup: (e) => moveControls.release(e.code),
-        blur: () => moveControls.reset(),
-        focus: () => moveControls.reset(),
+        keydown: (e) => inputControls.trigger(e.code),
+        keyup: (e) => inputControls.release(e.code),
+        blur: () => inputControls.reset(),
+        focus: () => inputControls.reset(),
       },
       update: () => {
-        const input = moveControls
-          // .fromTransformMatrix(camera.position, camera.quaternion)
-          .fromTransformMatrix(body.position, body.quaternion)
-          .multiply(speed)
-          .multiplyScalar(grounded ? 1 : 0.5);
+        // Get input rotation and direction
+        const rotation = inputControls.getRotation();
+        const direction = inputControls.getDirection();
 
-        console.log(input.x, input.z);
-        console.log(moveControls.direction.x, moveControls.direction.z);
-        body.velocity.set(input.x, body.velocity.y, input.z);
+        // Move Player relatively to his facing direction and his state
+        if (direction.length()) {
+          const direction = inputControls
+            .fromTransformMatrix(body.position, body.quaternion)
+            .multiply(speed)
+            .multiplyScalar(grounded ? 1 : 0.5);
 
-        const rotationQuaternion = new CANNON.Quaternion();
-        rotationQuaternion.setFromAxisAngle(
-          new CANNON.Vec3(0, 1, 0),
-          -input.phi * 0.1
-        );
-        body.quaternion = body.quaternion.mult(rotationQuaternion);
+          body.velocity.set(direction.x, body.velocity.y, direction.z);
+        }
 
-        if (grounded && input.y) {
+        // Rotate Player based on Input State
+        if (rotation.length()) {
+          const quaternion = new CANNON.Quaternion();
+          quaternion.setFromAxisAngle(
+            new CANNON.Vec3(0, 1, 0),
+            -rotation.x * 0.1
+          );
+          body.quaternion = body.quaternion.mult(quaternion);
+        }
+
+        // Jump if player is grounded and direction up
+        if (grounded && direction.y) {
           body.velocity.y = 10;
           grounded = false;
         }
 
+        // Let the control system follow the player
         if (controls) {
           controls.target = body.position.vadd(offset);
 
-          // if (input.phi || input.length()) {
-          //   const rotation = new THREE.Euler().setFromQuaternion(
-          //     new THREE.Quaternion().copy(body.quaternion)
-          //   );
-          //   console.log(rotation);
-          //   controls.setPhi(rotation.y);
-          // }
+          // Update the new direction to the control system
+          if (rotation.x || direction.length()) {
+            const direction = new THREE.Vector3();
+            mesh.getWorldDirection(direction).multiplyScalar(-1);
+            const rotation = new THREE.Spherical().setFromVector3(direction);
+            controls.setAzimuth(rotation.theta);
+          }
         }
-
+        
+        // Match visual with physics
         mesh.position.copy(body.position);
         mesh.quaternion.copy(body.quaternion);
       },

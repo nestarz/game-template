@@ -1,35 +1,36 @@
 import * as THREE from "three";
 
-export default ({
-  moveforward,
-  movebackward,
-  moveleft,
-  moveright,
-  jump,
-  rotateleft,
-  rotateright,
-}) => {
+export default (
+  moveforward = true,
+  movebackward = true,
+  moveleft = false,
+  moveright = false,
+  jump = true,
+  rotateleft = true,
+  rotateright = true
+) => {
   const direction = new THREE.Vector3();
   const rotation = new THREE.Vector3();
   const actions = {
-    KeyW: (x) => moveforward && direction.setX(x),
-    KeyS: (x) => movebackward && direction.setX(-x),
+    KeyW: (x) => moveforward && direction.setZ(x),
+    KeyS: (x) => movebackward && direction.setZ(-x),
     KeyA: (x) => {
-      moveleft && direction.setZ(-x);
-      rotateleft && rotation.setZ(-x);
+      moveleft && direction.setX(-x);
+      rotateleft && rotation.setX(-x);
     },
     KeyD: (x) => {
-      moveright && direction.setZ(x);
-      rotateright && rotation.setZ(x);
+      moveright && direction.setX(x);
+      rotateright && rotation.setX(x);
     },
     Space: (x) => jump && direction.setY(x),
   };
 
   return {
-    direction,
     trigger: (code) => actions[code] && actions[code](1),
     release: (code) => actions[code] && actions[code](0),
     reset: () => direction.set(0, 0, 0),
+    getRotation: () => rotation.clone(),
+    getDirection: () => direction.clone(),
     fromTransformMatrix: (position, quaternion) => {
       const transform = new THREE.Matrix4();
       transform.compose(
@@ -45,18 +46,17 @@ export default ({
         0
       );
 
-      const directionObject = directionWorld
+      const directionObject4 = directionWorld
         .clone()
         .applyMatrix4(transform)
         .normalize();
 
-      const result = new THREE.Vector3().set(
-        directionObject.x,
+      const directionObject = new THREE.Vector3().set(
+        directionObject4.x,
         directionWorld.y,
-        directionObject.z
+        directionObject4.z
       );
-      result.phi = rotation.z;
-      return result;
+      return directionObject;
     },
   };
 };
