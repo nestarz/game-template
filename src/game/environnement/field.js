@@ -4,7 +4,7 @@ import * as CANNON from "cannon-es";
 import perlin from "../utils/perlin.js";
 import { createGeometryFromCannonShape } from "../utils/cannon-utils.js";
 
-export default ({ world }) => {
+export default () => {
   const size = new CANNON.Vec3(20, 1900, 20);
   const matrix = Array.from({ length: size.x }, () => new Float32Array(size.z));
   let minValue = +Infinity;
@@ -26,7 +26,6 @@ export default ({ world }) => {
     frictionEquationStiffness: 1e8,
     frictionEquationRegularizationTime: 3,
   });
-  world.addContactMaterial(ground_ground_cm);
 
   const shape = new CANNON.Heightfield(matrix, {
     elementSize: 300,
@@ -40,7 +39,6 @@ export default ({ world }) => {
     -minValue,
     (size.z * shape.elementSize) / 2
   );
-  world.addBody(body);
 
   const geometry = createGeometryFromCannonShape(shape);
   const mesh = new THREE.Mesh(
@@ -59,7 +57,7 @@ export default ({ world }) => {
 
   return {
     manager: {
-      objects: [mesh],
+      objects: [{ mesh, body }, { contactMaterial: ground_ground_cm }],
     },
   };
 };

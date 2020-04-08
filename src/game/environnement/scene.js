@@ -18,10 +18,10 @@ export default ({ camera, renderer }) => {
   return {
     scene,
     updateObjects: (objects) => {
-      const add = diff(objects, currentObjects);
-      const remove = diff(currentObjects, objects);
-      add.forEach((object) => scene.add(object));
-      remove.forEach((object) => scene.remove(object));
+      const toAdd = diff(objects, currentObjects);
+      const toRemove = diff(currentObjects, objects);
+      toAdd.forEach((object) => scene.add(object));
+      toRemove.forEach((object) => scene.remove(object));
       currentObjects = objects;
     },
     manager: {

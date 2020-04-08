@@ -6,8 +6,8 @@ import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import { getPhysicBody } from "../physics/physics.js";
 import InputControls from "./input.js";
 
-export const Player = async ({ world }) => {
-  const speed = new CANNON.Vec3(100, 10, 100);
+export const Player = async () => {
+  const speed = new CANNON.Vec3(200, 10, 200);
   const controls = InputControls();
 
   const path = "assets/models/girl/girl.stl";
@@ -25,7 +25,6 @@ export const Player = async ({ world }) => {
       restitution: 0,
     }),
   });
-  world.addBody(body);
 
   let grounded = false;
   body.addEventListener("collide", ({ contact }) => {
@@ -50,7 +49,7 @@ export const Player = async ({ world }) => {
     },
     inUserMovement: () => controls.rotation.x || controls.direction.length(),
     manager: {
-      objects: [mesh],
+      objects: [{ mesh, body }],
       keyEvents: {
         keydown: (e) => controls.trigger(e.code),
         keyup: (e) => controls.release(e.code),

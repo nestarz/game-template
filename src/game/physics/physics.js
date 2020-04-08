@@ -30,10 +30,13 @@ export const getPhysicBody = (
   return body;
 };
 
+const diff = (a, b) => new Set([...a].filter((x) => !new Set(b).has(x)));
+
 export default ({ scene, fps, debug = false }) => {
   const world = new CANNON.World();
   world.gravity.set(0, -9.82, 0);
   world.broadphase = new CANNON.NaiveBroadphase();
+
   const shape = new CANNON.Plane();
   const body = new CANNON.Body({ mass: 0, shape });
   body.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
@@ -43,8 +46,16 @@ export default ({ scene, fps, debug = false }) => {
   const cannonDebugRenderer = debug
     ? new CannonDebugRenderer(scene, world)
     : null;
+  
+  let currentBodies = [];
   return {
-    world,
+    updateBodies: (bodies) => {
+      const toAdd = diff(bodies, currentBodies);
+      const toRemove = diff(currentBodies, bodies);
+      toAdd.forEach((body) => world.add(body));
+      toRemove.forEach((body) => world.remove(body));
+      currentBodies = bodies;
+    },
     manager: {
       update: () => {
         if (cannonDebugRenderer) cannonDebugRenderer.update();

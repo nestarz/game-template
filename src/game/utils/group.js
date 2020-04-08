@@ -18,7 +18,10 @@ export default (entities) => {
       return helper((m) => m.keyEvents && Object.keys(m.keyEvents));
     },
     get objects() {
-      return helper((m) => m.objects);
+      return helper((m) => m.objects && m.objects.map((object) => object.mesh));
+    },
+    get bodies() {
+      return helper((m) => m.objects && m.objects.map((object) => object.body));
     },
   };
 };
