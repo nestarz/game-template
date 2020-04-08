@@ -14,13 +14,6 @@ const resize = (camera, renderer) => {
 export default ({ camera, renderer }) => {
   const scene = new THREE.Scene();
 
-  // initialize directional light (sun)
-  const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-  sun.position.set(-1000, 1000, 0);
-
-  const spotLight = new THREE.SpotLight(0xffffff);
-  spotLight.position.set(-1000, 600, 10);
-
   let currentObjects = [];
   return {
     scene,
@@ -32,7 +25,6 @@ export default ({ camera, renderer }) => {
       currentObjects = objects;
     },
     manager: {
-      objects: [sun, spotLight],
       resize: () => resize(camera, renderer),
       start: () => {
         resize(camera, renderer);

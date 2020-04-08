@@ -3,6 +3,7 @@ import * as THREE from "three";
 import Physics from "./physics/physics.js";
 import Scene from "./environnement/scene.js";
 import Field from "./environnement/field.js";
+import Lights from "./environnement/lights.js";
 import { Player } from "./player/player.js";
 import { TPSCameraControl } from "./player/tpsCameraControl.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -25,9 +26,10 @@ export default async () => {
   const control = await TPSCameraControl({ camera });
   const scene = await Scene({ camera, renderer });
   const physics = await Physics({ scene: scene.scene, fps: FPS, debug: true });
+  const lights = await Lights();
   const field = await Field({ world: physics.world });
   const player = await Player({ world: physics.world });
-  const group = Group({ scene, control, player, field, physics });
+  const group = Group({ scene, lights, control, player, field, physics });
 
   const offset = new THREE.Vector3(0, 15, 0);
   return {
