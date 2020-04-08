@@ -21,21 +21,23 @@ export const TPSCameraControl = ({ camera }) => {
     max: 150,
   });
 
-  let prevMousePosUnit = new THREE.Vector2();
+  const prevMousePosUnit = new THREE.Vector2();
   let isDragging = false;
 
   let collideObjects = [];
   let radiusBeforeCollision = orbit.sphere.radius;
 
   const direction = new THREE.Vector3();
-  let target = new THREE.Vector3();
+  const shiftDirection = new THREE.Vector3();
+  const target = new THREE.Vector3();
+  const axis = new THREE.Vector3();
 
   return freeze({
     setCollideObjects: (objects) => {
       collideObjects = objects;
     },
     setTarget: (newTarget) => {
-      target = new THREE.Vector3().copy(newTarget);
+      target.copy(newTarget);
     },
     setAzimuthIfNotDragging: (theta) => {
       if (!isDragging) {
@@ -62,22 +64,35 @@ export const TPSCameraControl = ({ camera }) => {
         },
         wheel: (event) => {
           orbit.zoom(event.deltaY * 0.01);
-          radiusBeforeCollision = orbit.sphere.radius;
+          radiusBeforeCollision = orbit.sphere.radius - 0.01;
         },
       },
       update: () => {
         camera.getWorldDirection(direction);
         direction.multiplyScalar(-1);
 
-        const distance = collisionDistance({
-          origin: target,
-          direction,
-          radius: orbit.sphere.radius,
-          objects: collideObjects,
-        });
-
+        let distance = +Infinity;
+        for (let i = 0; i < 2; i++) {
+          for (let j = 0; j < 3; j++) {
+            distance = Math.min(
+              collisionDistance({
+                origin: target,
+                direction: shiftDirection
+                  .copy(direction)
+                  .applyAxisAngle(
+                    axis.set(Number(j === 0), Number(j === 1), Number(j === 2)),
+                    (i === 0 ? 1 : -1) * Math.PI * 0.1
+                  ),
+                radius: orbit.sphere.radius + 5,
+                objects: collideObjects,
+              }),
+              distance
+            );
+          }
+        }
+        
         orbit.sphere.radius =
-          distance === +Infinity ? radiusBeforeCollision : distance;
+          distance === +Infinity ? radiusBeforeCollision : distance - 1;
 
         const position = orbit.toCartesianCoordinates().add(target);
         camera.position.copy(position);
