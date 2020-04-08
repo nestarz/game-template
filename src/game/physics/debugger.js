@@ -226,7 +226,7 @@ class CannonDebugRenderer {
         break;
 
       case CANNON.Shape.types.PLANE:
-        mesh.scale.set(100, 100, 100);
+        mesh.scale.set(1000, 1000, 1000);
         break;
     }
   }

@@ -2,61 +2,62 @@ import * as THREE from "three";
 
 import Physics from "./physics/physics.js";
 import Scene from "./environnement/scene.js";
-import { Player } from "./player/players.js";
+import Field from "./environnement/field.js";
+import { Player } from "./player/player.js";
 import { TPSCameraControl } from "./player/tpsCameraControl.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import Group from "./utils/group.js";
 
-const FPS = 24;
-const FOV = 90;
+const FPS = 60;
+const FOV = 45;
 
 export default async () => {
-  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.01, 10000);
   const renderer = new THREE.WebGLRenderer();
-  renderer.setPixelRatio(window.devicePixelRatio / 3);
 
-  // Functions that return an object with a 'manager' key 
-  // with update, keyEvents, start, resize methods
-  // and an objects list to add to the scene (can be updated)
+  const cameraDebug = new THREE.PerspectiveCamera(FOV, 1, 0.01, 10000);
+  const controls = new OrbitControls(cameraDebug, renderer.domElement);
+  cameraDebug.position.set(0, 20, 100);
+  controls.update();
 
-  const scene = await Scene(camera, renderer);
-  const physics = await Physics(scene.scene, 1 / FPS, { debug: true });
-  const control = await TPSCameraControl(camera);
-  const player = await Player(physics.world, control);
+  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.01, 2000);
+  renderer.setPixelRatio(window.devicePixelRatio / 1);
 
-  const entities = { scene, physics, control, player };
+  const control = await TPSCameraControl({ camera });
+  const scene = await Scene({ camera, renderer });
+  const physics = await Physics({ scene: scene.scene, fps: FPS, debug: true });
+  const field = await Field({ world: physics.world });
+  const player = await Player({ world: physics.world });
+  const group = Group({ scene, control, player, field, physics });
 
-  // Helper to access manager values
-  const manager = (fn) =>
-    Object.values(entities)
-      .flatMap((e) => fn(e.manager))
-      .filter((r) => r);
-
+  const offset = new THREE.Vector3(0, 15, 0);
   return {
+    start: () => {
+      let t = Date.now();
+      group.start();
+      setTimeout(function update() {
+        group.update(Date.now() - t);
+
+        scene.updateObjects(group.objects);
+        control.setCollideObjects(group.objects);
+        control.setTarget(player.position.add(offset));
+        if (player.inUserMovement()) {
+          control.setAzimuthIfNotDragging(player.spherical.theta);
+        }
+
+        t = Date.now();
+        setTimeout(update, 1000 / FPS);
+      }, 1000 / FPS);
+    },
     attach: async (element, listener = element) => {
       element.appendChild(renderer.domElement);
 
-      const resize = () => manager((m) => m.resize && m.resize());
       if (window.ResizeObserver)
-        new window.ResizeObserver(resize).observe(element);
+        new window.ResizeObserver(group.resize).observe(element);
       else window.addEventListener("resize", resize);
 
-      const keyEvents = (ev) =>
-        manager(({ keyEvents }) => {
-          if (keyEvents && keyEvents[ev.type]) keyEvents[ev.type](ev);
-        });
-      manager((m) => m.keyEvents && Object.keys(m.keyEvents)).forEach((event) =>
-        listener.addEventListener(event, keyEvents, true)
+      group.events.forEach((type) =>
+        listener.addEventListener(type, group.eventsCallbacks(type), true)
       );
-    },
-    start: () => {
-      let i = 0;
-      manager((m) => m.start && m.start());
-      setTimeout(function update() {
-        console.clear();
-        manager((m) => m.update && m.update(i));
-        scene.updateObjects(manager((m) => m.objects));
-        i++;
-        setTimeout(update, 1000 / FPS);
-      }, 1000 / FPS);
     },
   };
 };

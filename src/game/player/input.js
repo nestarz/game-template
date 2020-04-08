@@ -26,11 +26,15 @@ export default (
   };
 
   return {
+    get rotation() {
+      return rotation.clone();
+    },
+    get direction() {
+      return direction.clone();
+    },
     trigger: (code) => actions[code] && actions[code](1),
     release: (code) => actions[code] && actions[code](0),
     reset: () => direction.set(0, 0, 0),
-    getRotation: () => rotation.clone(),
-    getDirection: () => direction.clone(),
     fromTransformMatrix: (position, quaternion) => {
       const transform = new THREE.Matrix4();
       transform.compose(
