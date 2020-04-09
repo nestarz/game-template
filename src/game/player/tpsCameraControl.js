@@ -17,7 +17,7 @@ export const TPSCameraControl = ({ camera }) => {
     phi: Math.PI / 2,
     theta: Math.PI / 3,
     min: 20,
-    max: 150,
+    max: 350,
   });
 
   const prevMousePosUnit = new THREE.Vector2();

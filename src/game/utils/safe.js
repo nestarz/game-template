@@ -2,13 +2,13 @@ const handler = {
   get(target, property, receiver) {
     if (property in target) return Reflect.get(target, property, receiver);
     if (property === "then") return; // ?
-    throw new Error(`Property '${property}' is not defined`);
+    throw new Error(`AttributeError: object has no attribute '${property}'`);
   },
   set(target, property, value, receiver) {
     if (property in target)
       return Reflect.set(target, property, value, receiver);
     if (property === "then") return; // ?
-    throw new Error(`Property '${property}' is not defined`);
+    throw new Error(`AttributeError: object has no attribute '${property}'`);
   },
 };
 

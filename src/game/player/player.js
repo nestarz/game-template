@@ -3,7 +3,7 @@ import * as CANNON from "cannon-es";
 
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 
-import { getPhysicBody } from "../physics/physics.js";
+import { computeBodyFromMesh } from "../physics/computeBody.js";
 import InputControls from "./input.js";
 
 const safeHack = new CANNON.Vec3(0, 1, 0);
@@ -22,7 +22,7 @@ const isGrounded = (groundMesh, body, direction = vToGround) => {
 };
 
 export const Player = async () => {
-  const speed = new CANNON.Vec3(50, 10, 50);
+  const speed = new CANNON.Vec3(340, 10, 340);
   const controls = InputControls();
 
   const path = "assets/models/girl/girl.stl";
@@ -32,7 +32,7 @@ export const Player = async () => {
   mesh.position.set(0, 500, 0);
   mesh.scale.set(22, 22, 22);
 
-  const body = getPhysicBody(mesh, CANNON.Sphere, {
+  const body = computeBodyFromMesh(mesh, CANNON.Sphere, {
     fixedRotation: true,
     mass: 5,
     material: new CANNON.Material({
@@ -100,7 +100,7 @@ export const Player = async () => {
         if (ground && !body.position.almostEquals(prevPosition, 0.2)) {
           const intersect = isGrounded(ground.mesh, body);
           if (intersect && intersect.distance > 1.6) {
-            body.velocity.y = -10 * intersect.distance;
+            body.velocity.y = -15 * intersect.distance;
           }
         }
 

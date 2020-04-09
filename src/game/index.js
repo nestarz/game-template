@@ -4,26 +4,28 @@ import Physics from "./physics/physics.js";
 import Scene from "./environnement/scene.js";
 import Field from "./environnement/field.js";
 import Lights from "./environnement/lights.js";
+import Fall from "./environnement/fall.js";
 import { Player } from "./player/player.js";
 import { TPSCameraControl } from "./player/tpsCameraControl.js";
 
 import Group from "./utils/group.js";
 
-const FPS = 25;
+const FPS = 50;
 const FOV = 45;
 
 export default async () => {
   const renderer = new THREE.WebGLRenderer();
-  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.01, 2000);
+  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.01, 6000);
   renderer.setPixelRatio(window.devicePixelRatio / 1);
 
   const control = await TPSCameraControl({ camera });
   const scene = await Scene({ camera, renderer });
-  const physics = await Physics({ scene: scene.scene, fps: FPS, debug: true });
+  const physics = await Physics({ scene: scene.scene, fps: FPS, debug: false });
   const lights = await Lights();
   const field = await Field();
+  const fall = await Fall();
   const player = await Player();
-  const group = Group({ scene, lights, field, control, player, physics });
+  const group = Group({ scene, physics, lights, control, player, field, fall });
 
   const offset = new THREE.Vector3(0, 15, 0);
   return {

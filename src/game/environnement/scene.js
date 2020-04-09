@@ -13,6 +13,10 @@ const resize = (camera, renderer) => {
 
 export default ({ camera, renderer }) => {
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color( "grey" );
+  const color = "grey";
+  const density = 0.001;
+  scene.fog = new THREE.FogExp2(color, density);
 
   let currentObjects = [];
   return {

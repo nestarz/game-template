@@ -5,6 +5,7 @@ import perlin from "../utils/perlin.js";
 import { createGeometryFromCannonShape } from "../utils/cannon-utils.js";
 
 export default () => {
+  const elementSize = 150;
   const size = new CANNON.Vec3(40, 1900, 40);
   const matrix = Array.from({ length: size.x }, () => new Float32Array(size.z));
   for (let i = 0; i < size.x; i++) {
@@ -26,7 +27,7 @@ export default () => {
   });
 
   const shape = new CANNON.Heightfield(matrix, {
-    elementSize: 100,
+    elementSize,
   });
 
   const body = new CANNON.Body({ mass: 0, material });
@@ -41,11 +42,10 @@ export default () => {
   const geometry = createGeometryFromCannonShape(shape);
   const mesh = new THREE.Mesh(
     geometry,
-    new THREE.MeshPhongMaterial({
-      color: 0x030303,
-      color: "red",
-      specular: 0x009900,
-      shininess: 30,
+    new THREE.MeshBasicMaterial({
+      color: "black",
+      specular: "white",
+      shininess: 0.05,
       flatShading: THREE.FlatShading,
     })
   );
@@ -60,6 +60,10 @@ export default () => {
         { name: "Mountains", body, mesh },
         { contactMaterial: ground_ground_cm },
       ],
+      update: (t) => {
+        // body.velocity.x += Math.sin(t / 10) * 1;
+        // mesh.position.copy(body.position);
+      }
     },
   };
 };
