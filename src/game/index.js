@@ -9,7 +9,7 @@ import { TPSCameraControl } from "./player/tpsCameraControl.js";
 
 import Group from "./utils/group.js";
 
-const FPS = 60;
+const FPS = 25;
 const FOV = 45;
 
 export default async () => {
@@ -23,7 +23,7 @@ export default async () => {
   const lights = await Lights();
   const field = await Field();
   const player = await Player();
-  const group = Group({ scene, lights, control, player, field, physics });
+  const group = Group({ scene, lights, field, control, player, physics });
 
   const offset = new THREE.Vector3(0, 15, 0);
   return {

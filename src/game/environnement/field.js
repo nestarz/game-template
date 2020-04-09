@@ -5,15 +5,13 @@ import perlin from "../utils/perlin.js";
 import { createGeometryFromCannonShape } from "../utils/cannon-utils.js";
 
 export default () => {
-  const size = new CANNON.Vec3(20, 1900, 20);
+  const size = new CANNON.Vec3(40, 1900, 40);
   const matrix = Array.from({ length: size.x }, () => new Float32Array(size.z));
-  let minValue = +Infinity;
   for (let i = 0; i < size.x; i++) {
     for (let j = 0; j < size.z; j++) {
       const height =
         perlin((i / size.x) * 4, (j / size.z) * 4, i / size.x) * size.y;
       matrix[i][j] = height;
-      minValue = Math.min(minValue, height);
     }
   }
 
@@ -28,7 +26,7 @@ export default () => {
   });
 
   const shape = new CANNON.Heightfield(matrix, {
-    elementSize: 300,
+    elementSize: 100,
   });
 
   const body = new CANNON.Body({ mass: 0, material });
@@ -36,7 +34,7 @@ export default () => {
   body.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
   body.position.set(
     (-size.x * shape.elementSize) / 2,
-    -minValue,
+    -shape.minValue,
     (size.z * shape.elementSize) / 2
   );
 
@@ -52,12 +50,16 @@ export default () => {
     })
   );
 
-  mesh.position.copy(body.position.vadd(new CANNON.Vec3(0, 0.8, 0)));
+  mesh.position.copy(body.position.vadd(new CANNON.Vec3(0, 0.2, 0)));
   mesh.quaternion.copy(body.quaternion);
+  mesh.visible = true;
 
   return {
     manager: {
-      objects: [{ mesh, body }, { contactMaterial: ground_ground_cm }],
+      objects: [
+        { name: "Mountains", body, mesh },
+        { contactMaterial: ground_ground_cm },
+      ],
     },
   };
 };

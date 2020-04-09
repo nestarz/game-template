@@ -6,8 +6,23 @@ import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import { getPhysicBody } from "../physics/physics.js";
 import InputControls from "./input.js";
 
+const safeHack = new CANNON.Vec3(0, 1, 0);
+const vToGround = new CANNON.Vec3(0, -1, 0);
+
+const temp0 = new THREE.Vector3();
+const isGrounded = (groundMesh, body, direction = vToGround) => {
+  const raycaster = new THREE.Raycaster(
+    temp0.copy(body.position.vadd(safeHack)),
+    direction,
+    0,
+    +Infinity
+  );
+  const intersects = raycaster.intersectObjects([groundMesh]);
+  return intersects && intersects[0];
+};
+
 export const Player = async () => {
-  const speed = new CANNON.Vec3(200, 10, 200);
+  const speed = new CANNON.Vec3(50, 10, 50);
   const controls = InputControls();
 
   const path = "assets/models/girl/girl.stl";
@@ -19,26 +34,30 @@ export const Player = async () => {
 
   const body = getPhysicBody(mesh, CANNON.Sphere, {
     fixedRotation: true,
-    mass: 500,
+    mass: 5,
     material: new CANNON.Material({
       friction: 0,
       restitution: 0,
     }),
   });
 
-  let grounded = false;
-  body.addEventListener("collide", ({ contact }) => {
-    if (!grounded) {
-      const to = new CANNON.Vec3(0, -1, 0);
-      const ray = new CANNON.Ray(body.position, to);
-      ray.updateDirection();
-      ray.intersectBody(contact.bi);
-      grounded = ray.result.hasHit;
+  let ground = null;
+  body.addEventListener("collide", ({ contact: { bi, bj } }) => {
+    if (!ground) {
+      const ray = new CANNON.Ray(body.position.vadd(safeHack), vToGround);
+      const result1 = new CANNON.RaycastResult();
+      const result2 = new CANNON.RaycastResult();
+      ray.intersectBody(bi, result1);
+      ray.intersectBody(bj, result2);
+      if (result1.hasHit || result2.hasHit) {
+        ground = bi === body ? bj : bi;
+      }
     }
   });
 
   const spherical = new THREE.Spherical();
   const direction = new THREE.Vector3();
+  const prevPosition = new CANNON.Vec3();
 
   return {
     get position() {
@@ -49,7 +68,7 @@ export const Player = async () => {
     },
     inUserMovement: () => controls.rotation.x || controls.direction.length(),
     manager: {
-      objects: [{ mesh, body }],
+      objects: [{ name: "Player", mesh, body }],
       keyEvents: {
         keydown: (e) => controls.trigger(e.code),
         keyup: (e) => controls.release(e.code),
@@ -61,8 +80,9 @@ export const Player = async () => {
         if (controls.direction.length()) {
           const direction = controls
             .fromTransformMatrix(body.position, body.quaternion)
+            .clone()
             .multiply(speed)
-            .multiplyScalar(grounded ? 1 : 0.5);
+            .multiplyScalar(ground ? 1 : 0.5);
 
           body.velocity.set(direction.x, body.velocity.y, direction.z);
         }
@@ -77,13 +97,15 @@ export const Player = async () => {
           body.quaternion = body.quaternion.mult(quaternion);
         }
 
-        // Jump if player is grounded and direction up
-        if (grounded && controls.direction.y) {
-          body.velocity.y = 10;
-          grounded = false;
+        if (ground && !body.position.almostEquals(prevPosition, 0.2)) {
+          const intersect = isGrounded(ground.mesh, body);
+          if (intersect && intersect.distance > 1.6) {
+            body.velocity.y = -10 * intersect.distance;
+          }
         }
 
         // Match visual with physics
+        prevPosition.copy(body.position);
         mesh.position.copy(body.position);
         mesh.quaternion.copy(body.quaternion);
 

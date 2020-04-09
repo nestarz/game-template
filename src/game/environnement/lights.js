@@ -9,11 +9,14 @@ export default () => {
 
   return {
     manager: {
-      objects: [{ mesh: sun }, { mesh: spotLight }],
+      objects: [
+        { name: "sun", mesh: sun },
+        { name: "spotlight", mesh: spotLight },
+      ],
       update: (t) => {
         spotLight.position.x = Math.sin(t / 100) * 1000;
         spotLight.position.y = -Math.cos(t / 100) * 1000;
-      }
+      },
     },
   };
 };

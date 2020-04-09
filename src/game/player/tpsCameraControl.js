@@ -1,7 +1,6 @@
 import * as THREE from "three";
 
 import Orbit from "./orbit.js";
-import collisionDistance from "./collision.js";
 import { freeze } from "../utils/safe.js";
 
 const computeMousePosUnit = ({ clientX, clientY, currentTarget }) =>
@@ -31,6 +30,8 @@ export const TPSCameraControl = ({ camera }) => {
   const shiftDirection = new THREE.Vector3();
   const target = new THREE.Vector3();
   const axis = new THREE.Vector3();
+  const raycaster = new THREE.Raycaster();
+  raycaster.near = 5;
 
   return freeze({
     setCollideObjects: (objects) => {
@@ -74,23 +75,24 @@ export const TPSCameraControl = ({ camera }) => {
         let distance = +Infinity;
         for (let i = 0; i < 2; i++) {
           for (let j = 0; j < 3; j++) {
-            distance = Math.min(
-              collisionDistance({
-                origin: target,
-                direction: shiftDirection
-                  .copy(direction)
-                  .applyAxisAngle(
-                    axis.set(Number(j === 0), Number(j === 1), Number(j === 2)),
-                    (i === 0 ? 1 : -1) * Math.PI * 0.1
-                  ),
-                radius: orbit.sphere.radius + 5,
-                objects: collideObjects,
-              }),
-              distance
+            raycaster.set(
+              target,
+              shiftDirection
+                .copy(direction)
+                .applyAxisAngle(
+                  axis.set(Number(j === 0), Number(j === 1), Number(j === 2)),
+                  (i === 0 ? 1 : -1) * Math.PI * 0.1
+                )
             );
+            raycaster.far = orbit.sphere.radius + 5;
+
+            const intersects = raycaster.intersectObjects(collideObjects);
+            if (intersects.length) {
+              distance = Math.min(intersects[0].distance, distance);
+            }
           }
         }
-        
+
         orbit.sphere.radius =
           distance === +Infinity ? radiusBeforeCollision : distance - 1;
 

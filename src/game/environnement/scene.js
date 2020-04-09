@@ -23,6 +23,8 @@ export default ({ camera, renderer }) => {
       toAdd.forEach((object) => scene.add(object));
       toRemove.forEach((object) => scene.remove(object));
       currentObjects = objects;
+      //console.clear();
+      //currentObjects.map(object => object.__group__name === "DebugLine" && console.log(object.geometry));
     },
     manager: {
       resize: () => resize(camera, renderer),
