@@ -18,7 +18,7 @@ async function main() {
     await loading.start();
   }
 
-  chat.attach(overlay);
+  // chat.attach(overlay);
   game.attach(main, document.body);
   game.start();
 

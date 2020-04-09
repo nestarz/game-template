@@ -16,6 +16,10 @@ export default () => {
     }
   }
 
+  const shape = new CANNON.Heightfield(matrix, {
+    elementSize,
+  });
+
   const material = new CANNON.Material("groundMaterial");
   const ground_ground_cm = new CANNON.ContactMaterial(material, material, {
     friction: 0,
@@ -26,12 +30,7 @@ export default () => {
     frictionEquationRegularizationTime: 3,
   });
 
-  const shape = new CANNON.Heightfield(matrix, {
-    elementSize,
-  });
-
-  const body = new CANNON.Body({ mass: 0, material });
-  body.addShape(shape);
+  const body = new CANNON.Body({ mass: 0, material, shape });
   body.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
   body.position.set(
     (-size.x * shape.elementSize) / 2,
@@ -42,12 +41,7 @@ export default () => {
   const geometry = createGeometryFromCannonShape(shape);
   const mesh = new THREE.Mesh(
     geometry,
-    new THREE.MeshBasicMaterial({
-      color: "black",
-      specular: "white",
-      shininess: 0.05,
-      flatShading: THREE.FlatShading,
-    })
+    new THREE.MeshBasicMaterial({ color: "black" })
   );
 
   mesh.position.copy(body.position.vadd(new CANNON.Vec3(0, 0.2, 0)));
@@ -63,7 +57,7 @@ export default () => {
       update: (t) => {
         // body.velocity.x += Math.sin(t / 10) * 1;
         // mesh.position.copy(body.position);
-      }
+      },
     },
   };
 };

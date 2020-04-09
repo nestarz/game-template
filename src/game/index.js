@@ -1,12 +1,12 @@
 import * as THREE from "three";
 
-import Physics from "./physics/physics.js";
+import World from "./physics/world.js";
 import Scene from "./environnement/scene.js";
 import Field from "./environnement/field.js";
 import Lights from "./environnement/lights.js";
 import Fall from "./environnement/fall.js";
 import { Player } from "./player/player.js";
-import { TPSCameraControl } from "./player/tpsCameraControl.js";
+import { TPSCameraControl } from "./camera/tps.js";
 
 import Group from "./utils/group.js";
 
@@ -20,12 +20,12 @@ export default async () => {
 
   const control = await TPSCameraControl({ camera });
   const scene = await Scene({ camera, renderer });
-  const physics = await Physics({ scene: scene.scene, fps: FPS, debug: false });
+  const world = await World({ scene: scene.scene, fps: FPS, debug: false });
   const lights = await Lights();
   const field = await Field();
   const fall = await Fall();
   const player = await Player();
-  const group = Group({ scene, physics, lights, control, player, field, fall });
+  const group = Group({ scene, world, lights, control, player, field, fall });
 
   const offset = new THREE.Vector3(0, 15, 0);
   return {
@@ -36,7 +36,7 @@ export default async () => {
         group.update(t++);
 
         scene.updateObjects(group.objects);
-        physics.updateBodies(group.bodies);
+        world.updateBodies(group.bodies);
 
         control.setCollideObjects(group.objects);
         control.setTarget(player.position.add(offset));

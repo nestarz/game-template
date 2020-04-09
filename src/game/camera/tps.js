@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import Orbit from "./orbit.js";
+import Orbit from "../utils/orbit.js";
 import { freeze } from "../utils/safe.js";
 
 const computeMousePosUnit = ({ clientX, clientY, currentTarget }) =>

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { safe, freeze } from "../utils/safe.js";
+import { safe, freeze } from "./safe.js";
 
 const preventGimbleLock = (phi) => {
   const EPS = 0.000001;
