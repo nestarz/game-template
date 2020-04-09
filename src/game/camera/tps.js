@@ -46,7 +46,7 @@ export const TPSCameraControl = ({ camera }) => {
       }
     },
     manager: {
-      keyEvents: {
+      DOMEvents: {
         mousemove: (event) => {
           if (!isDragging) return;
 

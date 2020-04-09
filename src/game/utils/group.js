@@ -14,10 +14,10 @@ export default (entities) => {
     start: () => helper((m) => "start" in m && m.start()),
     eventsCallbacks: (type) => (event) =>
       helper((m) => {
-        if ("keyEvents" in m && type in m.keyEvents) m.keyEvents[type](event);
+        if ("DOMEvents" in m && type in m.DOMEvents) m.DOMEvents[type](event);
       }),
     get events() {
-      return helper((m) => "keyEvents" in m && Object.keys(m.keyEvents));
+      return helper((m) => "DOMEvents" in m && Object.keys(m.DOMEvents));
     },
     get objects() {
       return helper(

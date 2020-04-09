@@ -69,7 +69,7 @@ export const Player = async () => {
     inUserMovement: () => controls.rotation.x || controls.direction.length(),
     manager: {
       objects: [{ name: "Player", mesh, body }],
-      keyEvents: {
+      DOMEvents: {
         keydown: (e) => controls.trigger(e.code),
         keyup: (e) => controls.release(e.code),
         blur: () => controls.reset(),
