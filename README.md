@@ -11,5 +11,5 @@
 ## Run
 
 ```
-python -m http.server 8080 --bind 127.0.0.1
+python -m http.server 8080 --bind 127.0.0.1 // or any other serve methods
 ```
